@@ -2,7 +2,6 @@
 THIS FILE RUNS IN THE CLIENT'S BROWSER BEFORE ANYTHING ELSE
 ------------------------------------------------------------------------------------------------------ */
 // root *javascript* file
-
 /* ------------------------------------------------------------------------------------------------------
 EXTERNAL FRAMEWORKS
 ------------------------------------------------------------------------------------------------------ */
@@ -16,7 +15,6 @@ var Route = Router.Route;
 var DefaultRoute = Router.DefaultRoute;
 // use Router's "NotFoundRoute" component (triggered when user visits a URL path that doesn't exist) and store it in a variable
 var NotFoundRoute = Router.NotFoundRoute;
-
 /* ------------------------------------------------------------------------------------------------------
 EXTERNAL COMPONENTS
 ------------------------------------------------------------------------------------------------------ */
@@ -26,7 +24,6 @@ var Audience = require('./components/Audience');
 var Speaker = require('./components/Speaker');
 var Board = require('./components/Board');
 var Whoops404 = require('./components/Whoops404');
-
 /* ------------------------------------------------------------------------------------------------------
 ROUTE HANDLER
 ------------------------------------------------------------------------------------------------------ */
@@ -50,22 +47,22 @@ ROUTE HANDLER
 	- "path" is the URL path the user enters in address bar to display the component ("/" brings user to Audience component)
 */
 var routes = (
-	<Route handler={APP}>
-		<DefaultRoute handler={Audience} />
-		<Route name="speaker" path="speaker" handler={Speaker}></Route>
-		<Route name="board" path="board" handler={Board}></Route>
-		<NotFoundRoute handler={Whoops404} />
-	</Route>
-);
-
+  <Route handler={APP}>
+    <DefaultRoute handler = {Audience}/>
+    <Route name="speaker" path="speaker" handler={Speaker}>
+    </Route>
+    <Route name="board" path="board" handler={Board}>
+    </Route>
+    <NotFoundRoute handler={Whoops404}/>
+  </Route>);
+  
 /* ------------------------------------------------------------------------------------------------------
 RENDERER
 ------------------------------------------------------------------------------------------------------ */
 // renders whatever component the user "asked" for by route (URL)
 // any properties (data) for the Audience, Speaker, and Board components / views need to be passed through the Handler
-Router.run(routes, function(Handler) {
-	React.render(<Handler />, document.getElementById('react-container'));
+Router.run(routes, function (Handler) {
+  React.render( <Handler/>, document.getElementById('react-container'));
 });
-
 // render only the APP component (from APP.js) into the react-container
 // React.render(<APP />, document.getElementById('react-container'));

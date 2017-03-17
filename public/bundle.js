@@ -48,7 +48,6 @@
 	THIS FILE RUNS IN THE CLIENT'S BROWSER BEFORE ANYTHING ELSE
 	------------------------------------------------------------------------------------------------------ */
 	// root *javascript* file
-
 	/* ------------------------------------------------------------------------------------------------------
 	EXTERNAL FRAMEWORKS
 	------------------------------------------------------------------------------------------------------ */
@@ -64,7 +63,6 @@
 	var DefaultRoute = Router.DefaultRoute;
 	// use Router's "NotFoundRoute" component (triggered when user visits a URL path that doesn't exist) and store it in a variable
 	var NotFoundRoute = Router.NotFoundRoute;
-
 	/* ------------------------------------------------------------------------------------------------------
 	EXTERNAL COMPONENTS
 	------------------------------------------------------------------------------------------------------ */
@@ -74,7 +72,6 @@
 	var Speaker = __webpack_require__(257);
 	var Board = __webpack_require__(261);
 	var Whoops404 = __webpack_require__(317);
-
 	/* ------------------------------------------------------------------------------------------------------
 	ROUTE HANDLER
 	------------------------------------------------------------------------------------------------------ */
@@ -114,7 +111,6 @@
 	Router.run(routes, function (Handler) {
 		React.render(React.createElement(Handler, null), document.getElementById('react-container'));
 	});
-
 	// render only the APP component (from APP.js) into the react-container
 	// React.render(<APP />, document.getElementById('react-container'));
 
@@ -23840,7 +23836,6 @@
 	// root *component* file
 	// manages the "state" of the app
 	// all data sent between server (app-server.js) and client (app-client.js) passes through this APP component
-
 	/* ------------------------------------------------------------------------------------------------------
 	COMPONENT TREE
 	---------------------------------------------------------------------------------------------------------
@@ -23857,7 +23852,6 @@
 	    - Whoops404.js (renders links to above components)
 	NOTE: all components make use of the Display.js component for conditional rendering w/ IF statements
 	------------------------------------------------------------------------------------------------------ */
-
 	/* ------------------------------------------------------------------------------------------------------
 	EXTERNAL FRAMEWORKS
 	------------------------------------------------------------------------------------------------------ */
@@ -23874,13 +23868,11 @@
 	var RouteHandler = Router.RouteHandler;
 	// include / require the Socket.io *client* framework and store it in a variable
 	var io = __webpack_require__(200);
-
 	/* ------------------------------------------------------------------------------------------------------
 	EXTERNAL COMPONENTS
 	------------------------------------------------------------------------------------------------------ */
 	// include / require the Header React component and store it in a variable
 	var Header = __webpack_require__(252);
-
 	/* ------------------------------------------------------------------------------------------------------
 	APP COMPONENT
 	------------------------------------------------------------------------------------------------------ */
@@ -23889,160 +23881,176 @@
 	var PORT = window.location.port || '';
 	console.log('port from APP.js: ' + PORT);
 	var APP = React.createClass({
-	    displayName: 'APP',
+	  displayName: 'APP',
 
-	    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	    INITIALIZE VARIABLES
-	    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-	    // when app first loads, app is disconnected, title is empty, and member is empty by default
-	    // need to keep the *client* states (below) in sync with *server* states (in app-server.js)
-	    // ex. "audience" state on client (below) needs to stay in sync with "audience" state on server (app-server.js)
-	    // NOTE: member object will hold the user's name and ID (member could be the speaker or an audience member)
-	    getInitialState: function getInitialState() {
-	        return {
-	            status: 'disconnected',
-	            title: 'WebSocket Demo',
-	            member: {},
-	            audience: [],
-	            speaker: '',
-	            questions: [],
-	            currentQuestion: false,
-	            results: {}
-	        };
-	    },
-	    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	    EVENT HANDLERS
-	    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-	    // listeners that trigger callback functions / actions when a specific event happens
+	  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	  INITIALIZE VARIABLES
+	  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+	  // when app first loads, app is disconnected, title is empty, and member is empty by default
+	  // need to keep the *client* states (below) in sync with *server* states (in app-server.js)
+	  // ex. "audience" state on client (below) needs to stay in sync with "audience" state on server (app-server.js)
+	  // NOTE: member object will hold the user's name and ID (member could be the speaker or an audience member)
+	  getInitialState: function getInitialState() {
+	    return {
+	      status: 'disconnected',
+	      title: 'WebSocket Demo',
+	      member: {},
+	      audience: [],
+	      speaker: '',
+	      questions: [],
+	      currentQuestion: false,
+	      results: {}
+	    };
+	  },
+	  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	  EVENT HANDLERS
+	  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+	  // listeners that trigger callback functions / actions when a specific event happens
+	  // all incoming / outgoing data is handled by this.socket
+	  // all data coming FROM the server will go through these listeners in the componentWillMount() function
+	  // ex. when component mounts, add a socket to "this" component
+	  // "The first true life cycle method called is componentWillMount(). This method is only called one time, which is before the initial render. Since this method is called before render() our Component will not have access to the Native UI (DOM, etc.). We also will not have access to the children refs, because they are not created yet. The componentWillMount() is a chance for us to handle configuration, update our state, and in general prepare for the first render. At this point, props and initial state are defined. We can safely query this.props and this.state, knowing with certainty they are the current values. This means we can start performing calculations or processes based on the prop values." - https://developmentarc.gitbooks.io/react-indepth/content/life_cycle/birth/premounting_with_componentwillmount.html
+	  componentWillMount: function componentWillMount() {
+	    /* *****************************************************************************************************
+	            // THIS IS WHERE THE CLIENT ADDS / REQUESTS A WEBSOCKET CONNECTION
+	    ***************************************************************************************************** */
+	    // "io" is the socket.io-client
+	    // "http://" + window.location.hostname..." is the socket server that the client should connect to and PORT = window.location.port || '';
+	    // "this" refers to this instance of the APP component (for *this* user)
+	    // when component mounts, add a socket to "this" component
 	    // all incoming / outgoing data is handled by this.socket
-	    // all data coming FROM the server will go through these listeners in the componentWillMount() function
-	    // ex. when component mounts, add a socket to "this" component
-	    // "The first true life cycle method called is componentWillMount(). This method is only called one time, which is before the initial render. Since this method is called before render() our Component will not have access to the Native UI (DOM, etc.). We also will not have access to the children refs, because they are not created yet. The componentWillMount() is a chance for us to handle configuration, update our state, and in general prepare for the first render. At this point, props and initial state are defined. We can safely query this.props and this.state, knowing with certainty they are the current values. This means we can start performing calculations or processes based on the prop values." - https://developmentarc.gitbooks.io/react-indepth/content/life_cycle/birth/premounting_with_componentwillmount.html
-	    componentWillMount: function componentWillMount() {
-	        /* *****************************************************************************************************
-	                // THIS IS WHERE THE CLIENT ADDS / REQUESTS A WEBSOCKET CONNECTION
-	        ***************************************************************************************************** */
-	        // "io" is the socket.io-client
-	        // "http://" + window.location.hostname..." is the socket server that the client should connect to and PORT = window.location.port || '';
-	        // "this" refers to this instance of the APP component (for *this* user)
-	        // when component mounts, add a socket to "this" component
-	        // all incoming / outgoing data is handled by this.socket
-	        this.socket = io("http://" + window.location.hostname + PORT != '' ? ':' + PORT : '');
-	        // event handlers
-	        this.socket.on('connect', this.connect);
-	        this.socket.on('welcome', this.updateState);
-	        this.socket.on('joined', this.joined);
-	        this.socket.on('audience', this.updateAudience);
-	        this.socket.on('start', this.start);
-	        this.socket.on('ask', this.ask);
-	        this.socket.on('results', this.updateResults);
-	        this.socket.on('end', this.updateState);
-	        this.socket.on('disconnect', this.disconnect);
-	    },
-	    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	    FUNCTIONS TRIGGERED BY EVENTS HANDLERS (ABOVE)
-	    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-	    // when a user / socket connects, check if they are a new user or returning user (data in sessionStorage)
-	    // if they are a returning user / socket, then re-populate their state with values from last session (ex. name, presentation title)
-	    connect: function connect() {
-	        // if this member is already in sessionStorage, then assign member ID in sessionStorage to this member; otherwise, do nothing
-	        var member = sessionStorage.member ? JSON.parse(sessionStorage.member) : null;
-	        // if we found the member in sessionStorage then re-join that member by emitting a "join" event and sending this member data back to the server
-	        // triggers "join" event on server
-	        if (member && member.type === 'audience') {
-	            this.emit('join', member);
-	        }
-	        // do the same for the speaker, but include their presentation title
-	        // triggers "start" event on server
-	        else if (member && member.type === 'speaker') {
-	                this.emit('start', { name: member.name, title: sessionStorage.title });
-	            }
-	        // when this.connect callback function fires above, then set state status to "connected"
-	        // whenever we call "setState", React automatically reinvokes / re-runs render() below
-	        this.setState({ status: 'connected' });
-	        // alert user that they are connected and provide the socket ID
-	        // alert("Connected: " +  this.socket.id);
-	    },
-	    // when user is welcomed, they receive serverState data (ex. name of presentation)
-	    // welcome(serverState) {
-	    // when user is welcomed, set / update the current title state on the client to mirror the state on the server
-	    // "this.setState({ title: serverState.title });" updates 1 property at a time
-	    // NOTE TO SELF: welcome() was replaced with updateState()
-	    updateState: function updateState(serverState) {
-	        this.setState(serverState);
-	    },
-	    // this.joined is triggered (?) when we receive a new audience member / user
-	    // add "member" node to sessionStorage so that if the member / user refreshes the page, the app doesn't consider them a brand new member / user
-	    joined: function joined(member) {
-	        sessionStorage.member = JSON.stringify(member);
-	        this.setState({ member: member });
-	    },
-	    // updateAudience handler that updates the state of the audience on the client
-	    updateAudience: function updateAudience(newAudience) {
-	        this.setState({ audience: newAudience });
-	    },
-	    // start handler is triggered (?) / "fired" by all sockets when the presentation starts
-	    // store the presentation title in sessionStorage; if speaker disconnects, then rejects (ex. refreshes the page), then the presentation title is not lost (the speaker's name is already saved in sessionStorage in the joined() function above
-	    start: function start(presentation) {
-	        if (this.state.member.type === 'speaker') {
-	            sessionStorage.title = presentation.title;
-	        }
-	        this.setState(presentation);
-	    },
-	    // sets currentQuestion to the question that the speaker just asked
-	    ask: function ask(question) {
-	        sessionStorage.answer = '';
-	        this.setState({
-	            currentQuestion: question,
-	            results: { a: 0, b: 0, c: 0, d: 0 }
-	        });
-	    },
-	    //
-	    updateResults: function updateResults(data) {
-	        this.setState({ results: data });
-	    },
-	    // this.disconnect function used in componentWillMount() above
-	    disconnect: function disconnect() {
-	        this.setState({
-	            status: 'disconnected',
-	            title: 'WebSocket Demo',
-	            speaker: ''
-	        });
-	    },
-	    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	    PROPERTY FOR CLIENT COMPONENTS TO EMIT / SEND DATA BACK TO SERVER
-	    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-	    // all data going TO the server will go through this emit() function
-	    // ex. for Join component, the eventName is "join" and the payload (the data) is memberName
-	    emit: function emit(eventName, payload) {
-	        this.socket.emit(eventName, payload);
-	    },
-	    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	    RENDERER
-	    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-	    // NOTE: the render() function in ES5 looks like "render: function(){...}"
-	    // render function in ES6
-	    render: function render() {
-	        // returns JSX
-	        // return (<h1>Hello World form React</h1>);
-	        // {this.state.status} would pass "connected" / "disconnected" state down to child component (Header)
-	        // {this.state.title} would pass title state (of presentation) down to child component (Header)
-	        /*
-	        	re: <RouteHandler {...this.state} />
-	        	- "..." is a "spread operator" that let's you pass in an entire object of properties (instead of 1 property at a time)
-	        	- this.state passes down the entire "state" down to the Route Handler as properties (status, title, etc.)
-	        */
-	        // emit={this.emit} passes the "emit" property down to the Audience child component so that it can (in turn) pass it down to the Join child component so that it can (in turn) "emit" the input form field value (memberName) back to the server
-	        // "this" refers to this instance of the APP component (for *this* user)
-	        return React.createElement(
-	            'div',
-	            null,
-	            React.createElement(Header, this.state),
-	            React.createElement(RouteHandler, _extends({ emit: this.emit }, this.state))
-	        );
+	    this.socket = io("http://" + window.location.hostname + PORT != '' ? ':' + PORT : '');
+	    // event handlers
+	    this.socket.on('connect', this.connect);
+	    this.socket.on('welcome', this.updateState);
+	    this.socket.on('joined', this.joined);
+	    this.socket.on('audience', this.updateAudience);
+	    this.socket.on('start', this.start);
+	    this.socket.on('ask', this.ask);
+	    this.socket.on('results', this.updateResults);
+	    this.socket.on('end', this.updateState);
+	    this.socket.on('disconnect', this.disconnect);
+	  },
+	  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	  FUNCTIONS TRIGGERED BY EVENTS HANDLERS (ABOVE)
+	  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+	  // when a user / socket connects, check if they are a new user or returning user (data in sessionStorage)
+	  // if they are a returning user / socket, then re-populate their state with values from last session (ex. name, presentation title)
+	  connect: function connect() {
+	    // if this member is already in sessionStorage, then assign member ID in sessionStorage to this member; otherwise, do nothing
+	    var member = sessionStorage.member ? JSON.parse(sessionStorage.member) : null;
+	    // if we found the member in sessionStorage then re-join that member by emitting a "join" event and sending this member data back to the server
+	    // triggers "join" event on server
+	    if (member && member.type === 'audience') {
+	      this.emit('join', member);
 	    }
+	    // do the same for the speaker, but include their presentation title
+	    // triggers "start" event on server
+	    else if (member && member.type === 'speaker') {
+	        this.emit('start', {
+	          name: member.name,
+	          title: sessionStorage.title
+	        });
+	      }
+	    // when this.connect callback function fires above, then set state status to "connected"
+	    // whenever we call "setState", React automatically reinvokes / re-runs render() below
+	    this.setState({
+	      status: 'connected'
+	    });
+	    // alert user that they are connected and provide the socket ID
+	    // alert("Connected: " +  this.socket.id);
+	  },
+	  // when user is welcomed, they receive serverState data (ex. name of presentation)
+	  // welcome(serverState) {
+	  // when user is welcomed, set / update the current title state on the client to mirror the state on the server
+	  // "this.setState({ title: serverState.title });" updates 1 property at a time
+	  // NOTE TO SELF: welcome() was replaced with updateState()
+	  updateState: function updateState(serverState) {
+	    this.setState(serverState);
+	  },
+	  // this.joined is triggered (?) when we receive a new audience member / user
+	  // add "member" node to sessionStorage so that if the member / user refreshes the page, the app doesn't consider them a brand new member / user
+	  joined: function joined(member) {
+	    sessionStorage.member = JSON.stringify(member);
+	    this.setState({
+	      member: member
+	    });
+	  },
+	  // updateAudience handler that updates the state of the audience on the client
+	  updateAudience: function updateAudience(newAudience) {
+	    this.setState({
+	      audience: newAudience
+	    });
+	  },
+	  // start handler is triggered (?) / "fired" by all sockets when the presentation starts
+	  // store the presentation title in sessionStorage; if speaker disconnects, then rejects (ex. refreshes the page), then the presentation title is not lost (the speaker's name is already saved in sessionStorage in the joined() function above
+	  start: function start(presentation) {
+	    if (this.state.member.type === 'speaker') {
+	      sessionStorage.title = presentation.title;
+	    }
+	    this.setState(presentation);
+	  },
+	  // sets currentQuestion to the question that the speaker just asked
+	  ask: function ask(question) {
+	    sessionStorage.answer = '';
+	    this.setState({
+	      currentQuestion: question,
+	      results: {
+	        a: 0,
+	        b: 0,
+	        c: 0,
+	        d: 0,
+	        e: 0
+	      }
+	    });
+	  },
+	  //
+	  updateResults: function updateResults(data) {
+	    this.setState({
+	      results: data
+	    });
+	  },
+	  // this.disconnect function used in componentWillMount() above
+	  disconnect: function disconnect() {
+	    this.setState({
+	      status: 'disconnected',
+	      title: 'WebSocket Demo',
+	      speaker: ''
+	    });
+	  },
+	  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	  PROPERTY FOR CLIENT COMPONENTS TO EMIT / SEND DATA BACK TO SERVER
+	  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+	  // all data going TO the server will go through this emit() function
+	  // ex. for Join component, the eventName is "join" and the payload (the data) is memberName
+	  emit: function emit(eventName, payload) {
+	    this.socket.emit(eventName, payload);
+	  },
+	  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	  RENDERER
+	  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+	  // NOTE: the render() function in ES5 looks like "render: function(){...}"
+	  // render function in ES6
+	  render: function render() {
+	    // returns JSX
+	    // return (<h1>Hello World form React</h1>);
+	    // {this.state.status} would pass "connected" / "disconnected" state down to child component (Header)
+	    // {this.state.title} would pass title state (of presentation) down to child component (Header)
+	    /*
+	    	re: <RouteHandler {...this.state} />
+	    	- "..." is a "spread operator" that let's you pass in an entire object of properties (instead of 1 property at a time)
+	    	- this.state passes down the entire "state" down to the Route Handler as properties (status, title, etc.)
+	    */
+	    // emit={this.emit} passes the "emit" property down to the Audience child component so that it can (in turn) pass it down to the Join child component so that it can (in turn) "emit" the input form field value (memberName) back to the server
+	    // "this" refers to this instance of the APP component (for *this* user)
+	    return React.createElement(
+	      'div',
+	      null,
+	      React.createElement(Header, this.state),
+	      React.createElement(RouteHandler, _extends({ emit: this.emit }, this.state))
+	    );
+	  }
 	});
-
 	// make this module's properties and functions (above) available to other files
 	module.exports = APP;
 
@@ -32578,7 +32586,6 @@
 	------------------------------------------------------------------------------------------------------ */
 	// child component (move to "components" folder?)
 	// manages output of the app's header
-
 	/* ------------------------------------------------------------------------------------------------------
 	EXTERNAL FRAMEWORKS
 	------------------------------------------------------------------------------------------------------ */
@@ -32588,95 +32595,74 @@
 	var React = __webpack_require__(1);
 	// Router's "Link" component (<a href=""></a>)
 	var Link = __webpack_require__(157).Link;
-
 	/* ------------------------------------------------------------------------------------------------------
 	EXTERNAL COMPONENTS
 	------------------------------------------------------------------------------------------------------ */
 	// include / require the Display component and store it in a variable
 	var Display = __webpack_require__(253);
-
 	/* ------------------------------------------------------------------------------------------------------
 	HEADER COMPONENT
 	------------------------------------------------------------------------------------------------------ */
 	// create React component for the header on all screens / pages
 	var Header = React.createClass({
-		displayName: 'Header',
+	  displayName: 'Header',
 
-		// title property is required (must "send in a title" to use this Header component)
-		propTypes: {
-			title: React.PropTypes.string.isRequired
-		},
-		// status property is optional
-		getDefaultProps: function getDefaultProps() {
-			return {
-				status: 'disconnected'
-			};
-		},
-		/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	    RENDERER
-	    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-		// render the view
-		render: function render() {
-			/* must use "className" below bc "class" is a reserved word in JS */
-			return React.createElement(
-				'header',
-				{ className: 'row' },
-				React.createElement(
-					Display,
-					{ 'if': this.props.status === 'connected' },
-					React.createElement(
-						'div',
-						{ className: 'banner-connected' },
-						React.createElement(
-							Display,
-							{ 'if': this.props.audience.length > 1 || this.props.audience.length === 0 },
-							React.createElement(
-								'div',
-								null,
-								this.props.audience.length,
-								' students connected.'
-							)
-						),
-						React.createElement(
-							Display,
-							{ 'if': this.props.audience.length == 1 },
-							React.createElement(
-								'div',
-								null,
-								this.props.audience.length,
-								' student connected.'
-							)
-						)
-					)
-				),
-				React.createElement(
-					Display,
-					{ 'if': this.props.status !== 'connected' },
-					React.createElement(
-						'div',
-						{ className: 'banner-disconnected' },
-						'Disconnected...'
-					)
-				),
-				React.createElement(
-					'div',
-					{ className: 'col-xs-12' },
-					React.createElement(
-						'h2',
-						null,
-						this.props.title,
-						React.createElement(
-							'span',
-							{ className: 'grey-font' },
-							' by ',
-							this.props.speaker
-						)
-					)
-				)
-			);
-		}
+	  // title property is required (must "send in a title" to use this Header component)
+	  propTypes: {
+	    title: React.PropTypes.string.isRequired
+	  },
+	  // status property is optional
+	  getDefaultProps: function getDefaultProps() {
+	    return {
+	      status: 'disconnected'
+	    };
+	  },
+	  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	  RENDERER
+	  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+	  // render the view
+	  render: function render() {
+	    /* must use "className" below bc "class" is a reserved word in JS */
+	    //    <Display if = {this.props.status === 'connected'}>
+	    //      <div className = "banner-connected">
+	    //        <Display if = {this.props.audience.length > 1 || this.props.audience.length === 0}>
+	    //          <div> {this.props.audience.length} students connected. </div>
+	    //        </Display>
+	    //
+	    //        <Display if = {this.props.audience.length == 1}>
+	    //          <div> {this.props.audience.length} student connected. </div>
+	    //        </Display>
+	    //      </div>
+	    //    </Display>
+	    return React.createElement(
+	      'header',
+	      { className: 'row' },
+	      React.createElement(
+	        Display,
+	        { 'if': this.props.status !== 'connected' },
+	        React.createElement(
+	          'div',
+	          { className: 'banner-disconnected' },
+	          ' Niet verbonden... '
+	        )
+	      ),
+	      React.createElement(
+	        'div',
+	        { className: 'col-xs-12' },
+	        React.createElement(
+	          'h2',
+	          null,
+	          ' MAESTRO ',
+	          React.createElement(
+	            'span',
+	            { className: 'grey-font' },
+	            ' door Boxtel’s Harmonie '
+	          )
+	        )
+	      )
+	    );
+	  }
 	});
-
 	// make this module's properties and functions (above) available to other files
 	module.exports = Header;
 
@@ -32689,7 +32675,6 @@
 	------------------------------------------------------------------------------------------------------ */
 	// child component used by many other components
 	// manages output of all child and "grandchild" components
-
 	/* ------------------------------------------------------------------------------------------------------
 	EXTERNAL FRAMEWORKS
 	------------------------------------------------------------------------------------------------------ */
@@ -32697,7 +32682,6 @@
 	'use strict';
 
 	var React = __webpack_require__(1);
-
 	/* ------------------------------------------------------------------------------------------------------
 	DISPLAY COMPONENT
 	------------------------------------------------------------------------------------------------------ */
@@ -32705,17 +32689,18 @@
 	// if the "if" property is true, then display the component's children
 	// "                     " false, then do nothing
 	var Display = React.createClass({
-		displayName: 'Display',
+	  displayName: 'Display',
 
-		render: function render() {
-			return this.props['if'] ? React.createElement(
-				'div',
-				null,
-				this.props.children
-			) : null;
-		}
+	  render: function render() {
+	    return this.props['if'] ? React.createElement(
+	      'div',
+	      null,
+	      ' ',
+	      this.props.children,
+	      ' '
+	    ) : null;
+	  }
 	});
-
 	// make this module's properties and functions (above) available to other files
 	module.exports = Display;
 
@@ -32729,7 +32714,6 @@
 	------------------------------------------------------------------------------------------------------ */
 	// child component
 	// manages output of the app's "audience" screen / page
-
 	/* ------------------------------------------------------------------------------------------------------
 	EXTERNAL FRAMEWORKS
 	------------------------------------------------------------------------------------------------------ */
@@ -32739,7 +32723,6 @@
 	var React = __webpack_require__(1);
 	// Router's "Link" component (<a href=""></a>)
 	var Link = __webpack_require__(157).Link;
-
 	/* ------------------------------------------------------------------------------------------------------
 	EXTERNAL COMPONENTS
 	------------------------------------------------------------------------------------------------------ */
@@ -32749,72 +32732,70 @@
 	var Join = __webpack_require__(255);
 	// include / require the Ask component (question answering) and store it in a variable
 	var Ask = __webpack_require__(256);
-
 	/* ------------------------------------------------------------------------------------------------------
 	AUDIENCE COMPONENT
 	------------------------------------------------------------------------------------------------------ */
 	// create React component for all instances of "audience" screens / pages
 	var Audience = React.createClass({
-		displayName: 'Audience',
+	  displayName: 'Audience',
 
-		/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	    RENDERER
 	    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-		// render the view
-		render: function render() {
-			// "Join the session" only displays IF this socket is connected
-			// <Join emit={this.props.emit} /> passes the "emit" property down to the Join child CHILD component so that it can "emit" the input form field value (memberName) back to the server
-			// <Display if={this.props.member.name}> displays a welcome screen to user if the user already has a name
-			// if user does NOT already have a name, <Display if={!this.props.member.name}> displays a "Join the session" screen
-			return React.createElement(
-				'div',
-				{ className: 'container' },
-				React.createElement(
-					Display,
-					{ 'if': this.props.status === 'connected' },
-					React.createElement(
-						Display,
-						{ 'if': this.props.member.name },
-						React.createElement(
-							Display,
-							{ 'if': !this.props.currentQuestion },
-							React.createElement(
-								'div',
-								{ className: 'row' },
-								React.createElement(
-									'h4',
-									null,
-									'Welcome ',
-									this.props.member.name,
-									' ☺'
-								),
-								React.createElement(
-									'p',
-									{ className: 'top-margin' },
-									'Questions will appear here...'
-								)
-							)
-						),
-						React.createElement(
-							Display,
-							{ 'if': this.props.currentQuestion },
-							React.createElement(
-								'div',
-								{ className: 'row' },
-								React.createElement(Ask, { question: this.props.currentQuestion, emit: this.props.emit })
-							)
-						)
-					),
-					React.createElement(
-						Display,
-						{ 'if': !this.props.member.name },
-						React.createElement(Join, { emit: this.props.emit })
-					)
-				)
-			);
-		}
+	  // render the view
+	  render: function render() {
+	    // "Join the session" only displays IF this socket is connected
+	    // <Join emit={this.props.emit} /> passes the "emit" property down to the Join child CHILD component so that it can "emit" the input form field value (memberName) back to the server
+	    // <Display if={this.props.member.name}> displays a welcome screen to user if the user already has a name
+	    // if user does NOT already have a name, <Display if={!this.props.member.name}> displays a "Join the session" screen
+	    return React.createElement(
+	      'div',
+	      { className: 'container' },
+	      React.createElement(
+	        Display,
+	        { 'if': this.props.status === 'connected' },
+	        React.createElement(
+	          Display,
+	          { 'if': this.props.member.name },
+	          React.createElement(
+	            Display,
+	            { 'if': !this.props.currentQuestion },
+	            React.createElement(
+	              'div',
+	              { className: 'row' },
+	              React.createElement(
+	                'h4',
+	                null,
+	                ' Welkom ',
+	                this.props.member.name,
+	                '!'
+	              ),
+	              React.createElement(
+	                'p',
+	                { className: 'top-margin' },
+	                ' Het stemmen zal zo verschijnen... '
+	              )
+	            )
+	          ),
+	          React.createElement(
+	            Display,
+	            { 'if': this.props.currentQuestion },
+	            React.createElement(
+	              'div',
+	              { className: 'row' },
+	              React.createElement(Ask, { question: this.props.currentQuestion, emit: this.props.emit })
+	            )
+	          )
+	        ),
+	        React.createElement(
+	          Display,
+	          { 'if': !this.props.member.name },
+	          React.createElement(Join, { emit: this.props.emit })
+	        )
+	      )
+	    );
+	  }
 	});
-
 	// make this module's properties and functions (above) available to other files
 	module.exports = Audience;
 
@@ -32827,7 +32808,6 @@
 	------------------------------------------------------------------------------------------------------ */
 	// "grandchild" component (under Audience in component tree?)
 	// manages output of the app's "Join the session" screen / page
-
 	/* ------------------------------------------------------------------------------------------------------
 	EXTERNAL FRAMEWORKS
 	------------------------------------------------------------------------------------------------------ */
@@ -32837,64 +32817,61 @@
 	var React = __webpack_require__(1);
 	// Router's "Link" component (<a href=""></a>)
 	var Link = __webpack_require__(157).Link;
-
 	/* ------------------------------------------------------------------------------------------------------
 	JOIN COMPONENT
 	------------------------------------------------------------------------------------------------------ */
 	// create React component
 	var Join = React.createClass({
-		displayName: 'Join',
+	  displayName: 'Join',
 
-		// called when a user submits the form (below)
-		// this.refs.name grabs the value of the input form field with the ref="name" attribute (see the form below)
-		join: function join() {
-			var memberName = React.findDOMNode(this.refs.name).value;
-			// alert("TODO: Join member " + memberName);
-			// "emit" sends the input form data "memberName" / (this.refs.name).value from the client back to the server
-			// "memberName" can be called the "payload of data" / "data payload"
-			this.props.emit('join', { name: memberName });
-		},
-		/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	    RENDERER
-	    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-		// render the view
-		render: function render() {
-			/*
-	  	- "javascript:void(0)" ensures the form data doesn't get sent anywhere
-	  	- onSubmit={this.join} calls the join() function (above) on form submission
-	  	- HTML5 automatically validates all input form data and prevents submission if data is invalid
-	  	- ref="name" is how React gets the input field value (similar to the "name" attribute)
-	  	- <Link to="/speaker">Start the presentation</Link> is an anchor link to the "/speaker" route to join as a "speaker" type
-	  */
-			return React.createElement(
-				'div',
-				{ className: 'row' },
-				React.createElement(
-					'h4',
-					null,
-					'Join the session'
-				),
-				React.createElement(
-					'form',
-					{ action: 'javascript:void(0)', onSubmit: this.join },
-					React.createElement(
-						'div',
-						{ className: 'col-xs-12 col-md-2 no-padding' },
-						React.createElement('input', { ref: 'name',
-							className: 'form-control',
-							placeholder: 'Enter your name...',
-							required: true })
-					),
-					React.createElement(
-						'button',
-						{ className: 'col-xs-12 col-md-2 btn btn-primary' },
-						'Join'
-					)
-				)
-			);
-		}
+	  // called when a user submits the form (below)
+	  // this.refs.name grabs the value of the input form field with the ref="name" attribute (see the form below)
+	  join: function join() {
+	    var memberName = React.findDOMNode(this.refs.name).value;
+	    // alert("TODO: Join member " + memberName);
+	    // "emit" sends the input form data "memberName" / (this.refs.name).value from the client back to the server
+	    // "memberName" can be called the "payload of data" / "data payload"
+	    this.props.emit('join', {
+	      name: memberName
+	    });
+	  },
+	  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	  RENDERER
+	  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+	  // render the view
+	  render: function render() {
+	    /*
+	    	- "javascript:void(0)" ensures the form data doesn't get sent anywhere
+	    	- onSubmit={this.join} calls the join() function (above) on form submission
+	    	- HTML5 automatically validates all input form data and prevents submission if data is invalid
+	    	- ref="name" is how React gets the input field value (similar to the "name" attribute)
+	    	- <Link to="/speaker">Start the presentation</Link> is an anchor link to the "/speaker" route to join as a "speaker" type
+	    */
+	    return React.createElement(
+	      'div',
+	      { className: 'row' },
+	      React.createElement(
+	        'h4',
+	        null,
+	        ' Join the session '
+	      ),
+	      React.createElement(
+	        'form',
+	        { action: 'javascript:void(0)', onSubmit: this.join },
+	        React.createElement(
+	          'div',
+	          { className: 'col-xs-12 col-md-2 no-padding' },
+	          React.createElement('input', { ref: 'name', className: 'form-control', placeholder: 'Uw naam', required: true })
+	        ),
+	        React.createElement(
+	          'button',
+	          { className: 'col-xs-12 col-md-2 btn btn-primary' },
+	          ' Verbind '
+	        )
+	      )
+	    );
+	  }
 	});
-
 	// make this module's properties and functions (above) available to other files
 	module.exports = Join;
 
@@ -32907,7 +32884,6 @@
 	------------------------------------------------------------------------------------------------------ */
 	// "grandchild" component
 	// manages output of the app's "question answering" screen / page for audience members
-
 	/* ------------------------------------------------------------------------------------------------------
 	EXTERNAL FRAMEWORKS
 	------------------------------------------------------------------------------------------------------ */
@@ -32917,131 +32893,117 @@
 	var React = __webpack_require__(1);
 	// Router's "Link" component (<a href=""></a>)
 	var Link = __webpack_require__(157).Link;
-
 	/* ------------------------------------------------------------------------------------------------------
 	EXTERNAL COMPONENTS
 	------------------------------------------------------------------------------------------------------ */
 	// include / require the Display component and store it in a variable
 	var Display = __webpack_require__(253);
-
 	/* ------------------------------------------------------------------------------------------------------
 	ASK COMPONENT
 	------------------------------------------------------------------------------------------------------ */
 	// create React component for all instances of "question answering" screens / pages for all audience members
 	var Ask = React.createClass({
-		displayName: 'Ask',
+	  displayName: 'Ask',
 
-		/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	    INITIALIZE VARIABLES
 	    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-		// when this component first loads, "choices" is empty and "answer" is undefined
-		// need to keep the *client* states (below) in sync with *server* states (in app-server.js)
-		getInitialState: function getInitialState() {
-			return {
-				choices: [],
-				answer: undefined
-			};
-		},
-		/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	    EVENT HANDLERS
-	    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-		// listeners that trigger callback functions / actions when a specific event happens
-		componentWillMount: function componentWillMount() {
-			this.setUpChoices();
-		},
-		// "The componentWillReceiveProps() method is called when props are passed to the component instance." - https://developmentarc.gitbooks.io/react-indepth/content/life_cycle/update/component_will_receive_props.html
-		componentWillReceiveProps: function componentWillReceiveProps() {
-			this.setUpChoices();
-		},
-		// sets state for / assign values to "choices" and "answer" (if user already answered and their answer was stored in sessionStorage)
-		setUpChoices: function setUpChoices() {
-			var choices = Object.keys(this.props.question);
-			// choices.shift();
-			this.setState({
-				choices: ["a", "b", "c", "d"],
-				answer: sessionStorage.answer
-			});
-		},
-		// sets state for / assign values to "answer" and sends "answer" back to server
-		select: function select(choice) {
-			this.setState({ answer: choice });
-			sessionStorage.answer = choice;
-			this.props.emit('answer', {
-				question: this.props.question,
-				choice: choice
-			});
-		},
-		// prepares answer buttons for output
-		addChoiceButton: function addChoiceButton(choice, i) {
-			var buttonTypes = ['primary', 'info', 'warning', 'danger'];
-			return React.createElement(
-				'div',
-				{ className: 'button-spacing col-xs-12 col-md-6' },
-				React.createElement(
-					'button',
-					{ key: i,
-						className: "btn btn-" + buttonTypes[i],
-						onClick: this.select.bind(null, choice) },
-					choice.toUpperCase(),
-					'. ',
-					this.props.question[choice]
-				)
-			);
-		},
-		/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	    RENDERER
-	    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-		// render the view
-		// className="row" not needed here because already included in Audience.js
-		render: function render() {
-			return React.createElement(
-				'div',
-				{ id: 'currentQuestion' },
-				React.createElement(
-					Display,
-					{ 'if': this.state.answer },
-					React.createElement(
-						'h4',
-						null,
-						React.createElement(
-							Link,
-							{ to: '/board' },
-							'See results →'
-						)
-					),
-					React.createElement(
-						'h4',
-						null,
-						'Your answer: ',
-						this.state.answer.toUpperCase(),
-						'. ',
-						this.props.question[this.state.answer]
-					),
-					React.createElement(
-						'h4',
-						{ className: 'green-font' },
-						'Correct answer: ',
-						this.props.question.correct
-					)
-				),
-				React.createElement(
-					Display,
-					{ 'if': !this.state.answer },
-					React.createElement(
-						'h4',
-						null,
-						this.props.question.q
-					),
-					React.createElement(
-						'div',
-						{ className: 'col-md-9' },
-						this.state.choices.map(this.addChoiceButton)
-					)
-				)
-			);
-		}
+	  // when this component first loads, "choices" is empty and "answer" is undefined
+	  // need to keep the *client* states (below) in sync with *server* states (in app-server.js)
+	  getInitialState: function getInitialState() {
+	    return {
+	      choices: [],
+	      answer: undefined
+	    };
+	  },
+	  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	   EVENT HANDLERS
+	   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+	  // listeners that trigger callback functions / actions when a specific event happens
+	  componentWillMount: function componentWillMount() {
+	    this.setUpChoices();
+	  }, // "The componentWillReceiveProps() method is called when props are passed to the component instance." - https://developmentarc.gitbooks.io/react-indepth/content/life_cycle/update/component_will_receive_props.html
+	  componentWillReceiveProps: function componentWillReceiveProps() {
+	    this.setUpChoices();
+	  }, // sets state for / assign values to "choices" and "answer" (if user already answered and their answer was stored in sessionStorage)
+	  setUpChoices: function setUpChoices() {
+	    var choices = Object.keys(this.props.question);
+	    // choices.shift();
+	    this.setState({
+	      choices: ["a", "b", "c", "d", "e"],
+	      answer: sessionStorage.answer
+	    });
+	  }, // sets state for / assign values to "answer" and sends "answer" back to server
+	  select: function select(choice) {
+	    this.setState({
+	      answer: choice
+	    });
+	    sessionStorage.answer = choice;
+	    this.props.emit('answer', {
+	      question: this.props.question,
+	      choice: choice
+	    });
+	  }, // prepares answer buttons for output
+	  addChoiceButton: function addChoiceButton(choice, i) {
+	    var buttonTypes = ['primary', 'info', 'warning', 'danger'];
+	    return React.createElement(
+	      'div',
+	      { className: 'button-spacing col-xs-12 col-md-6' },
+	      React.createElement(
+	        'button',
+	        { key: i, className: "btn btn-" + buttonTypes[i], onClick: this.select.bind(null, choice) },
+	        ' ',
+	        choice.toUpperCase(),
+	        '. ',
+	        this.props.question[choice],
+	        ' '
+	      )
+	    );
+	  },
+	  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	   RENDERER
+	   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+	  //     render the view
+	  //            <h4 className="green-font">Correct answer: {this.props.question.correct}</h4>
+	  //            <h4><Link to="/board">See results &#8594;</Link></h4>
+	  //     className="row" not needed here because already included in Audience.js
+	  render: function render() {
+	    return React.createElement(
+	      'div',
+	      { id: 'currentQuestion' },
+	      React.createElement(
+	        Display,
+	        { 'if': this.state.answer },
+	        React.createElement(
+	          'h4',
+	          null,
+	          'Uw antwoord: ',
+	          this.state.answer.toUpperCase(),
+	          '. ',
+	          this.props.question[this.state.answer]
+	        )
+	      ),
+	      React.createElement(
+	        Display,
+	        { 'if': !this.state.answer },
+	        React.createElement(
+	          'h4',
+	          null,
+	          ' ',
+	          this.props.question.q,
+	          ' '
+	        ),
+	        React.createElement(
+	          'div',
+	          { className: 'col-md-9' },
+	          ' ',
+	          this.state.choices.map(this.addChoiceButton),
+	          ' '
+	        )
+	      )
+	    );
+	  }
 	});
-
 	// make this module's properties and functions (above) available to other files
 	module.exports = Ask;
 
@@ -33054,7 +33016,6 @@
 	------------------------------------------------------------------------------------------------------ */
 	// child component
 	// manages output of the app's "speaker" screen / page
-
 	/* ------------------------------------------------------------------------------------------------------
 	EXTERNAL FRAMEWORKS
 	------------------------------------------------------------------------------------------------------ */
@@ -33064,7 +33025,6 @@
 	var React = __webpack_require__(1);
 	// include / require the Display component and store it in a variable
 	// it will be used to display the speaker's "join" form view / screen when we don't have a speaker member and display the speaker's homepage view / screen when we do have a member
-
 	/* ------------------------------------------------------------------------------------------------------
 	EXTERNAL COMPONENTS
 	------------------------------------------------------------------------------------------------------ */
@@ -33075,43 +33035,41 @@
 	var Attendance = __webpack_require__(259);
 	// include / require the Question component (table) and store it in a variable
 	var Questions = __webpack_require__(260);
-
 	/* ------------------------------------------------------------------------------------------------------
 	SPEAKER COMPONENT
 	------------------------------------------------------------------------------------------------------ */
 	// create React component for all instances of "speaker" screens / pages
 	var Speaker = React.createClass({
-		displayName: 'Speaker',
+	  displayName: 'Speaker',
 
-		// render the view
-		// placeholder for questions + attendance
-		// "Start the presentation" only displays IF this socket is connected, but there is no value for the member's name
-		// <JoinSpeaker emit={this.props.emit} /> passes the "emit" property down to the JoinSpeaker child CHILD component so that it can "emit" the input form field values (speakerName and title) back to the server
-		// <Display if={this.props.member.name && this.props.member.type === 'speaker'}> displays a screen of questions + attendance stats to the speaker IF the speaker already has a name and is of type "speaker"
-		// if user does NOT already have a name, <Display if={!this.props.member.name}> displays a "Join the session" screen
-		render: function render() {
-			return React.createElement(
-				'div',
-				{ className: 'container' },
-				React.createElement(
-					Display,
-					{ 'if': this.props.status === 'connected' },
-					React.createElement(
-						Display,
-						{ 'if': this.props.member.name && this.props.member.type === 'speaker' },
-						React.createElement(Questions, { questions: this.props.questions, emit: this.props.emit }),
-						React.createElement(Attendance, { audience: this.props.audience })
-					),
-					React.createElement(
-						Display,
-						{ 'if': !this.props.member.name },
-						React.createElement(JoinSpeaker, { emit: this.props.emit })
-					)
-				)
-			);
-		}
+	  // render the view
+	  // placeholder for questions + attendance
+	  // "Start the presentation" only displays IF this socket is connected, but there is no value for the member's name
+	  // <JoinSpeaker emit={this.props.emit} /> passes the "emit" property down to the JoinSpeaker child CHILD component so that it can "emit" the input form field values (speakerName and title) back to the server
+	  // <Display if={this.props.member.name && this.props.member.type === 'speaker'}> displays a screen of questions + attendance stats to the speaker IF the speaker already has a name and is of type "speaker"
+	  // if user does NOT already have a name, <Display if={!this.props.member.name}> displays a "Join the session" screen
+	  render: function render() {
+	    return React.createElement(
+	      'div',
+	      { className: 'container' },
+	      React.createElement(
+	        Display,
+	        { 'if': this.props.status === 'connected' },
+	        React.createElement(
+	          Display,
+	          { 'if': this.props.member.name && this.props.member.type === 'speaker' },
+	          React.createElement(Questions, { questions: this.props.questions, emit: this.props.emit }),
+	          React.createElement(Attendance, { audience: this.props.audience })
+	        ),
+	        React.createElement(
+	          Display,
+	          { 'if': !this.props.member.name },
+	          React.createElement(JoinSpeaker, { emit: this.props.emit })
+	        )
+	      )
+	    );
+	  }
 	});
-
 	// make this module's properties and functions (above) available to other files
 	module.exports = Speaker;
 
@@ -33120,75 +33078,66 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	/* ------------------------------------------------------------------------------------------------------
-	THIS FILE COLLECT'S THE PRESENTATION TITLE AND SPEAKER'S NAME
-	------------------------------------------------------------------------------------------------------ */
-	// "grandchild" component (under Audience in component tree?)
-	// manages output of the app's "Start presentation" screen / page
-
-	/* ------------------------------------------------------------------------------------------------------
-	EXTERNAL FRAMEWORKS
+	COLLECT'S THE PRESENTATION TITLE AND SPEAKER'S NAME
 	------------------------------------------------------------------------------------------------------ */
 	// include / require the React framework and store it in a variable
 	'use strict';
 
 	var React = __webpack_require__(1);
 
-	/* ------------------------------------------------------------------------------------------------------
-	JOINSPEAKER COMPONENT
-	------------------------------------------------------------------------------------------------------ */
 	// create React component
 	var JoinSpeaker = React.createClass({
-		displayName: 'JoinSpeaker',
+	  displayName: 'JoinSpeaker',
 
-		// called when a user submits the form (below) and "starts" the presentation
-		// this.refs.name and this.refs.title grab the values of the input form fields with the ref="name" and ref="title" attributes (see the form below)
-		start: function start() {
-			var speakerName = React.findDOMNode(this.refs.name).value;
-			// var title = React.findDOMNode(this.refs.title).value;
-			// "emit" sends the input form data "memberName" / (this.refs.name).value from the client back to the server
-			// "speakerName" and "title" are the "payload of data" / "data payload"
-			this.props.emit('start', { name: speakerName, title: 'WebSocket Demo' });
-		},
-		/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	    RENDERER
-	    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-		// render the view
-		render: function render() {
-			/*
-	  	- "javascript:void(0)" ensures the form data doesn't get sent anywhere
-	  	- onSubmit={this.join} calls the join() function (above) on form submission
-	  	- HTML5 automatically validates all input form data and prevents submission if data is invalid
-	  	- ref="name" and ref="title" is how React gets the input field value (similar to the "name" attribute)
-	  */
-			return React.createElement(
-				'div',
-				{ className: 'row' },
-				React.createElement(
-					'h4',
-					null,
-					'Start the session'
-				),
-				React.createElement(
-					'form',
-					{ action: 'javascript:void(0)', onSubmit: this.start },
-					React.createElement(
-						'div',
-						{ className: 'col-xs-12 col-md-2 no-padding' },
-						React.createElement('input', { ref: 'name',
-							className: 'form-control',
-							placeholder: 'Enter your name...',
-							required: true })
-					),
-					React.createElement(
-						'button',
-						{ className: 'col-xs-12 col-md-2 btn btn-success' },
-						'Start Presentation'
-					)
-				)
-			);
-		}
+	  // called when a user submits the form (below) and "starts" the presentation
+	  // this.refs.name and this.refs.title grab the values of the input form fields with the ref="name" and ref="title" attributes (see the form below)
+	  start: function start() {
+	    var speakerName = React.findDOMNode(this.refs.name).value;
+	    // var title = React.findDOMNode(this.refs.title).value;
+	    // "emit" sends the input form data "memberName" / (this.refs.name).value from the client back to the server
+	    // "speakerName" and "title" are the "payload of data" / "data payload"
+	    this.props.emit('start', {
+	      name: speakerName,
+	      title: 'WebSocket Demo'
+	    });
+	  },
+	  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	  RENDERER
+	  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+	  // render the view
+	  render: function render() {
+	    /*
+	    	- "javascript:void(0)" ensures the form data doesn't get sent anywhere
+	    	- onSubmit={this.join} calls the join() function (above) on form submission
+	    	- HTML5 automatically validates all input form data and prevents submission if data is invalid
+	    	- ref="name" and ref="title" is how React gets the input field value (similar to the "name" attribute)
+	    */
+	    return React.createElement(
+	      'div',
+	      { className: 'row' },
+	      ' ',
+	      React.createElement(
+	        'h4',
+	        null,
+	        ' Start the session '
+	      ),
+	      React.createElement(
+	        'form',
+	        { action: 'javascript:void(0)', onSubmit: this.start },
+	        React.createElement(
+	          'div',
+	          { className: 'col-xs-12 col-md-2 no-padding' },
+	          React.createElement('input', { ref: 'name', className: 'form-control', placeholder: 'Uw naam', required: true })
+	        ),
+	        React.createElement(
+	          'button',
+	          { className: 'col-xs-12 col-md-2 btn btn-success' },
+	          ' Start stemmen '
+	        )
+	      )
+	    );
+	  }
 	});
-
 	// make this module's properties and functions (above) available to other files
 	module.exports = JoinSpeaker;
 
@@ -33201,7 +33150,6 @@
 	------------------------------------------------------------------------------------------------------ */
 	// "grandchild" component (under Speaker in component tree)
 	// manages output of the app's attendance data
-
 	/* ------------------------------------------------------------------------------------------------------
 	EXTERNAL FRAMEWORKS
 	------------------------------------------------------------------------------------------------------ */
@@ -33209,81 +33157,88 @@
 	"use strict";
 
 	var React = __webpack_require__(1);
-
 	/* ------------------------------------------------------------------------------------------------------
 	ATTENDANCE COMPONENT
 	------------------------------------------------------------------------------------------------------ */
 	// create React component for the attendance data
 	var Attendance = React.createClass({
-		displayName: "Attendance",
+	  displayName: "Attendance",
 
-		// returns a JSX table row element
-		// invoked once for each audience member
-		// "member" is the audience member's data (name)
-		// "i" is the index of that audience member
-		addMemberRow: function addMemberRow(member, i) {
-			return React.createElement(
-				"tr",
-				{ key: i },
-				React.createElement(
-					"td",
-					null,
-					member.name
-				),
-				React.createElement(
-					"td",
-					null,
-					member.id
-				)
-			);
-		},
-		/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	    RENDERER
-	    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-		// render the view
-		render: function render() {
-			// .map() functions returns an array of JSX table row elements
-			return React.createElement(
-				"div",
-				{ className: "row" },
-				React.createElement(
-					"h4",
-					null,
-					"Attendance (",
-					this.props.audience.length,
-					")"
-				),
-				React.createElement(
-					"table",
-					{ className: "table" },
-					React.createElement(
-						"thead",
-						null,
-						React.createElement(
-							"tr",
-							null,
-							React.createElement(
-								"th",
-								null,
-								"Name"
-							),
-							React.createElement(
-								"th",
-								null,
-								"Socket ID"
-							)
-						)
-					),
-					React.createElement(
-						"tbody",
-						null,
-						this.props.audience.map(this.addMemberRow)
-					)
-				)
-			);
-		}
+	  // returns a JSX table row element
+	  // invoked once for each audience member
+	  // "member" is the audience member's data (name)
+	  // "i" is the index of that audience member
+	  addMemberRow: function addMemberRow(member, i) {
+	    return React.createElement(
+	      "tr",
+	      { key: i },
+	      " ",
+	      React.createElement(
+	        "td",
+	        null,
+	        " ",
+	        member.name,
+	        " "
+	      ),
+	      " ",
+	      React.createElement(
+	        "td",
+	        null,
+	        " ",
+	        member.id,
+	        " "
+	      ),
+	      " "
+	    );
+	  },
+	  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	  RENDERER
+	  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+	  // render the view
+	  render: function render() {
+	    // .map() functions returns an array of JSX table row elements
+	    return React.createElement(
+	      "div",
+	      { className: "row" },
+	      React.createElement(
+	        "h4",
+	        null,
+	        " Attendance (",
+	        this.props.audience.length,
+	        ") "
+	      ),
+	      React.createElement(
+	        "table",
+	        { className: "table" },
+	        React.createElement(
+	          "thead",
+	          null,
+	          React.createElement(
+	            "tr",
+	            null,
+	            React.createElement(
+	              "th",
+	              null,
+	              " Name "
+	            ),
+	            React.createElement(
+	              "th",
+	              null,
+	              " Socket ID "
+	            )
+	          )
+	        ),
+	        React.createElement(
+	          "tbody",
+	          null,
+	          " ",
+	          this.props.audience.map(this.addMemberRow),
+	          " "
+	        )
+	      )
+	    );
+	  }
 	});
-
 	// make this module's properties and functions (above) available to other files
 	module.exports = Attendance;
 
@@ -33292,69 +33247,56 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	/* ------------------------------------------------------------------------------------------------------
-	THIS FILE OUTPUTS A LIST OF QUESTIONS FOR THE SPEAKER TO CHOOSE / ASK THE AUDIENCE
+	OUTPUTS A LIST OF QUESTIONS FOR THE SPEAKER TO CHOOSE / ASK THE AUDIENCE
 	------------------------------------------------------------------------------------------------------ */
-	// "grandchild" component (under Speaker in component tree?)
-	// manages output of the app's questions on the speaker screen / page
 
-	/* ------------------------------------------------------------------------------------------------------
-	EXTERNAL FRAMEWORKS
-	------------------------------------------------------------------------------------------------------ */
-	// include / require the React framework and store it in a variable
 	'use strict';
 
 	var React = __webpack_require__(1);
 
-	/* ------------------------------------------------------------------------------------------------------
-	QUESTIONS COMPONENT
-	------------------------------------------------------------------------------------------------------ */
 	// create React component
 	var Questions = React.createClass({
-		displayName: 'Questions',
+	  displayName: 'Questions',
 
-		// emits an "ask" event and sends the clicked / current question to the server
-		ask: function ask(question) {
-			this.props.emit('ask', question);
-		},
-		// returns a JSX table row element
-		// invoked once for each question
-		// "question" is the question
-		// "i" is the index of that question
-		// <span onClick={this.ask.bind(null, question)}>{question.q}</span> means that when the speaker clicks on the <span>, question.q gets sent into the ask() function as the "question" argument
-		addQuestion: function addQuestion(question, i) {
-			return React.createElement(
-				'div',
-				{ key: i },
-				React.createElement(
-					'span',
-					{ onClick: this.ask.bind(null, question) },
-					question.q
-				)
-			);
-		},
-		/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	    RENDERER
-	    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-		// render the view
-		render: function render() {
-			// .map() functions returns an array of JSX table row elements
-			return React.createElement(
-				'div',
-				{ className: 'row' },
-				React.createElement(
-					'h4',
-					null,
-					'Questions'
-				),
-				React.createElement(
-					'div',
-					{ id: 'questions' },
-					this.props.questions.map(this.addQuestion)
-				)
-			);
-		}
+	  // emits an "ask" event and sends the clicked / current question to the server
+	  ask: function ask(question) {
+	    this.props.emit('ask', question);
+	  },
+
+	  // returns a JSX table row element
+	  // invoked once for each question
+	  // "question" is the question
+	  // "i" is the index of that question
+	  // <span onClick={this.ask.bind(null, question)}>{question.q}</span> means that when the speaker clicks on the <span>, question.q gets sent into the ask() function as the "question" argument
+	  addQuestion: function addQuestion(question, i) {
+	    return React.createElement(
+	      'div',
+	      { key: i },
+	      React.createElement(
+	        'span',
+	        { onClick: this.ask.bind(null, question) },
+	        ' ',
+	        question.q,
+	        ' '
+	      )
+	    );
+	  },
+
+	  // render the view
+	  render: function render() {
+	    // .map() functions returns an array of JSX table row elements
+	    return React.createElement(
+	      'div',
+	      { className: 'row' },
+	      React.createElement(
+	        'div',
+	        { id: 'questions' },
+	        ' ',
+	        this.props.questions.map(this.addQuestion)
+	      )
+	    );
+	  }
 	});
-
 	// make this module's properties and functions (above) available to other files
 	module.exports = Questions;
 
@@ -33367,7 +33309,6 @@
 	------------------------------------------------------------------------------------------------------ */
 	// child component
 	// manages output of the app's "board" screen / page
-
 	/* ------------------------------------------------------------------------------------------------------
 	EXTERNAL FRAMEWORKS
 	------------------------------------------------------------------------------------------------------ */
@@ -33377,7 +33318,6 @@
 	var React = __webpack_require__(1);
 	// Router's "Link" component (<a href=""></a>)
 	var Link = __webpack_require__(157).Link;
-
 	/* ------------------------------------------------------------------------------------------------------
 	EXTERNAL COMPONENTS
 	------------------------------------------------------------------------------------------------------ */
@@ -33385,74 +33325,64 @@
 	var Display = __webpack_require__(253);
 	// include / require the React D3 BarChart component and store it in a variable
 	var BarChart = __webpack_require__(262).BarChart;
-
 	/* ------------------------------------------------------------------------------------------------------
 	BOARD COMPONENT
 	------------------------------------------------------------------------------------------------------ */
 	// create React component for all instances of "board" screens / pages
 	var Board = React.createClass({
-		displayName: 'Board',
+	  displayName: 'Board',
 
-		/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	    PREPARE DATA FOR D3 BAR GRAPH
 	    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-		barGraphData: function barGraphData(results, currentQuestion) {
-			var a = currentQuestion.a;
-			var b = currentQuestion.b;
-			var c = currentQuestion.c;
-			var d = currentQuestion.d;
-			var answers = [a, b, c, d];
-			var counter = 0;
-			return Object.keys(results).map(function (choice) {
-				var label = choice.toUpperCase() + ". " + answers[counter];
-				counter++;
-				console.log(counter);
-				return {
-					label: label,
-					value: results[choice]
-				};
-			});
-		},
-		/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	    RENDERER
-	    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-		// render the view
-		render: function render() {
-			return React.createElement(
-				'div',
-				{ id: 'scoreboard', className: 'container' },
-				React.createElement(
-					'h4',
-					null,
-					React.createElement(
-						Link,
-						{ to: '/' },
-						'← Back to question'
-					)
-				),
-				React.createElement(
-					Display,
-					{ 'if': this.props.status === 'connected' && this.props.currentQuestion },
-					React.createElement(BarChart, { data: this.barGraphData(this.props.results, this.props.currentQuestion),
-						title: this.props.currentQuestion.q,
-						height: window.innerHeight * 0.5,
-						width: window.innerWidth * 0.6,
-						margin: { top: 10, bottom: 500, left: 50, right: 10 }
-					})
-				),
-				React.createElement(
-					Display,
-					{ 'if': this.props.status === 'connected' && !this.props.currentQuestion },
-					React.createElement(
-						'h4',
-						null,
-						'Awaiting a Question...'
-					)
-				)
-			);
-		}
+	  barGraphData: function barGraphData(results, currentQuestion) {
+	    var a = currentQuestion.a;
+	    var b = currentQuestion.b;
+	    var c = currentQuestion.c;
+	    var d = currentQuestion.d;
+	    var e = currentQuestion.e;
+	    var answers = [a, b, c, d, e];
+	    var counter = 0;
+	    return Object.keys(results).map(function (choice) {
+	      var label = choice.toUpperCase() + ". " + answers[counter];
+	      counter++;
+	      console.log(counter);
+	      return {
+	        label: label,
+	        value: results[choice]
+	      };
+	    });
+	  },
+	  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	   RENDERER
+	   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+	  // render the view
+	  render: function render() {
+	    return React.createElement(
+	      'div',
+	      { id: 'scoreboard', className: 'container' },
+	      React.createElement(
+	        Display,
+	        { 'if': this.props.status === 'connected' && this.props.currentQuestion },
+	        React.createElement(BarChart, {
+	          data: this.barGraphData(this.props.results, this.props.currentQuestion),
+	          title: this.props.currentQuestion.q,
+	          height: window.innerHeight * 0.5,
+	          width: window.innerWidth * 0.6,
+	          margin: { top: 10, bottom: 500, left: 50, right: 10 } })
+	      ),
+	      React.createElement(
+	        Display,
+	        { 'if': this.props.status === 'connected' && !this.props.currentQuestion },
+	        React.createElement(
+	          'h4',
+	          null,
+	          ' De resultaten zullen zo verschijnen... '
+	        )
+	      )
+	    );
+	  }
 	});
-
 	// make this module's properties and functions (above) available to other files
 	module.exports = Board;
 
@@ -52123,7 +52053,6 @@
 	------------------------------------------------------------------------------------------------------ */
 	// child component
 	// manages output of the app's "404" screen / page
-
 	/* ------------------------------------------------------------------------------------------------------
 	EXTERNAL FRAMEWORKS
 	------------------------------------------------------------------------------------------------------ */
@@ -52136,49 +52065,39 @@
 	var Router = __webpack_require__(157);
 	// Router's "Link" component (<a href=""></a>)
 	var Link = Router.Link;
-
 	/* ------------------------------------------------------------------------------------------------------
 	WHOOPS404 COMPONENT
 	------------------------------------------------------------------------------------------------------ */
 	// create React component for all instances of "404" screens / pages
 	var Whoops404 = React.createClass({
-		displayName: 'Whoops404',
+	  displayName: 'Whoops404',
 
-		render: function render() {
-			return React.createElement(
-				'div',
-				{ id: 'not-found' },
-				React.createElement(
-					'h4',
-					null,
-					'Whoops... The page you requested does not exist.'
-				),
-				React.createElement(
-					'ul',
-					null,
-					React.createElement(
-						'li',
-						null,
-						React.createElement(
-							Link,
-							{ to: '/' },
-							'Join the session'
-						)
-					),
-					React.createElement(
-						'li',
-						null,
-						React.createElement(
-							Link,
-							{ to: '/board' },
-							'View graph of results'
-						)
-					)
-				)
-			);
-		}
+	  render: function render() {
+	    return React.createElement(
+	      'div',
+	      { id: 'not-found' },
+	      React.createElement(
+	        'h4',
+	        null,
+	        ' Whoops... De pagina die je probeert te bereiken bestaat niet :('
+	      ),
+	      React.createElement(
+	        'ul',
+	        null,
+	        React.createElement(
+	          'li',
+	          null,
+	          ' ',
+	          React.createElement(
+	            Link,
+	            { to: '/' },
+	            ' Terug naar het stemmen '
+	          )
+	        )
+	      )
+	    );
+	  }
 	});
-
 	// make this module's properties and functions (above) available to other files
 	module.exports = Whoops404;
 
