@@ -30,7 +30,8 @@ var JoinSpeaker = React.createClass({
       	- ref="name" and ref="title" is how React gets the input field value (similar to the "name" attribute)
       */
       return (
-        <div className="row"> <h4> Start the session </h4>
+        <div className="row">
+          <h3> Naar het stemmen! </h3>
           <form action="javascript:void(0)" onSubmit={ this.start }>
             <div className="col-xs-12 col-md-2 no-padding">
               <input ref="name" className="form-control" placeholder="Uw naam" required/>

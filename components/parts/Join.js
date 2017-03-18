@@ -40,7 +40,8 @@ var Join = React.createClass({
       */
       return (
         <div className="row">
-          <h4> Join the session </h4>
+          <h3> Voer uw naam in & druk dan op verbinden! </h3>
+          <h4> U doet dan mee met het stemmen. </h4>
           <form action="javascript:void(0)" onSubmit={this.join}>
             <div className="col-xs-12 col-md-2 no-padding"> 
               <input ref="name" className="form-control" placeholder="Uw naam" required/>
