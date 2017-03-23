@@ -18,13 +18,11 @@ var Attendance = React.createClass({
   // "member" is the audience member's data (name)
   // "i" is the index of that audience member
   addMemberRow(member, i) {
-      return ( < tr key = {
-        i
-      } > < td > {
-        member.name
-      } < /td> < td > {
-        member.id
-      } < /td> < /tr>);
+      return (
+        <tr key={i}>
+          <td> {member.name} </td>
+          <td> {member.id} </td>
+        </tr>);
     }
     , /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     RENDERER

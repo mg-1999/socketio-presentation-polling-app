@@ -54,7 +54,7 @@ var Board = React.createClass({
             <BarChart
               data = {this.barGraphData(this.props.results, this.props.currentQuestion)}
               title = {this.props.currentQuestion.q}
-              height = {window.innerHeight * 0.5}
+              height = {window.innerHeight * 0.7}
               width = {window.innerWidth * 0.6}
               margin = {{top: 10, bottom: 500, left: 50, right: 10}}/>
             </Display>

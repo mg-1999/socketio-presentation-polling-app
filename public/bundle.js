@@ -32851,9 +32851,14 @@
 	      'div',
 	      { className: 'row' },
 	      React.createElement(
+	        'h3',
+	        null,
+	        ' Voer uw naam in & druk dan op verbinden! '
+	      ),
+	      React.createElement(
 	        'h4',
 	        null,
-	        ' Join the session '
+	        ' U doet dan mee met het stemmen. '
 	      ),
 	      React.createElement(
 	        'form',
@@ -33115,11 +33120,10 @@
 	    return React.createElement(
 	      'div',
 	      { className: 'row' },
-	      ' ',
 	      React.createElement(
-	        'h4',
+	        'h3',
 	        null,
-	        ' Start the session '
+	        ' Naar het stemmen! '
 	      ),
 	      React.createElement(
 	        'form',
@@ -33172,7 +33176,6 @@
 	    return React.createElement(
 	      "tr",
 	      { key: i },
-	      " ",
 	      React.createElement(
 	        "td",
 	        null,
@@ -33180,15 +33183,13 @@
 	        member.name,
 	        " "
 	      ),
-	      " ",
 	      React.createElement(
 	        "td",
 	        null,
 	        " ",
 	        member.id,
 	        " "
-	      ),
-	      " "
+	      )
 	    );
 	  },
 	  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -33367,7 +33368,7 @@
 	        React.createElement(BarChart, {
 	          data: this.barGraphData(this.props.results, this.props.currentQuestion),
 	          title: this.props.currentQuestion.q,
-	          height: window.innerHeight * 0.5,
+	          height: window.innerHeight * 0.7,
 	          width: window.innerWidth * 0.6,
 	          margin: { top: 10, bottom: 500, left: 50, right: 10 } })
 	      ),
