@@ -40,6 +40,14 @@ var results = {
   , d: 0
   , e: 0
 };
+// import request and add to var
+var request = require('request');
+// init mongoose
+var mongoose = require('mongoose');
+
+// connect mongoose
+mongoose.connect('');
+
 /* ------------------------------------------------------------------------------------------------------
 SERVER CONFIGURATION (REARRANGE INSIDES)
 ------------------------------------------------------------------------------------------------------ */
@@ -66,7 +74,89 @@ const io = socketIO().listen(server);
 // tell express which port to run on
 server.listen(PORT, () => console.log(`Listening on ${ PORT }`));
 // confirm that server is running
-console.log("Polling server is running at 'http://localhost:3000'");
+console.log("Polling server is running at 'http://localhost:" + PORT +"'");
+// END
+
+var a = 0;
+var b = 0;
+var c = 0;
+var d = 0;
+var e = 0;
+
+var Vote = require("./models/vote");
+
+var reset = function() {
+  a = 0; b = 0; c = 0; d = 0; e = 0;
+  Vote.find({name: "a"}, function(err, votes) {
+    var vote = votes[0];
+    vote.vote = a;
+    vote.save();
+  });
+  Vote.find({name: "b"}, function(err, votes) {
+    var vote = votes[0];
+    vote.vote = b;
+    vote.save();
+  });
+  Vote.find({name: "c"}, function(err, votes) {
+    var vote = votes[0];
+    vote.vote = c;
+    vote.save();
+  });
+  Vote.find({name: "d"}, function(err, votes) {
+    var vote = votes[0];
+    vote.vote = d;
+    vote.save();
+  });
+  Vote.find({name: "e"}, function(err, votes) {
+    var vote = votes[0];
+    vote.vote = e;
+    vote.save();
+  });
+};
+
+var updateResults = function(result) {
+  if ('a' === result) {
+    a++;
+    Vote.find({name: "a"}, function(err, votes) {
+      var vote = votes[0];
+      vote.vote = a;
+      vote.save();
+    });
+  }
+  if ('b' === result) {
+    b++;
+    Vote.find({name: "b"}, function(err, votes) {
+      var vote = votes[0];
+      vote.vote = b;
+      vote.save();
+    });
+  }
+  if ('c' === result) {
+    c++;
+    Vote.find({name: "c"}, function(err, votes) {
+      var vote = votes[0];
+      vote.vote = c;
+      vote.save();
+    });
+  }
+  if ('d' === result) {
+    d++;
+    Vote.find({name: "d"}, function(err, votes) {
+      var vote = votes[0];
+      vote.vote = d;
+      vote.save();
+    });
+  }
+  if ('e' === result) {
+    e++;
+    Vote.find({name: "e"}, function(err, votes) {
+      var vote = votes[0];
+      vote.vote = e;
+      vote.save();
+    });
+  }
+};
+
 /* ------------------------------------------------------------------------------------------------------
 EVENT HANDLERS (REARRANGE INSIDES)
 ------------------------------------------------------------------------------------------------------ */
@@ -77,7 +167,7 @@ io.sockets.on('connection', function (socket) {
   // add new socket ID to connections array
   connections.push(socket);
   // confirm new # of sockets connected
-  console.log("Connected: %s sockets connected.", connections.length);
+  //console.log("Connected: %s sockets connected.", connections.length);
   // listens for a "join" event (when a new audience member joins)
   // payload (memberName) gets passed into callback function as an argument
   // this.id inside the callback function refers to the ID of the socket that just emitted a "join" event
@@ -95,7 +185,7 @@ io.sockets.on('connection', function (socket) {
     this.emit('joined', newMember);
     audience.push(newMember);
     io.sockets.emit('audience', audience);
-    console.log("Audience Joined: %s", payload.name);
+    //console.log("Audience Joined: %s", payload.name);
   });
   // when a user connects, send data to them using "emit"
   // the "emit" method emits events that can be handled by the client
@@ -125,28 +215,24 @@ io.sockets.on('connection', function (socket) {
       , speaker: speaker.name
     });
     // %s is similar to ? in PHP PDO bind parameters for database queries
-    console.log("Presentation Started: '%s' by %s", title, speaker.name);
+    //console.log("Presentation Started: '%s' by %s", title, speaker.name);
   });
   // when the speaker asks a question, we handle it with this callback function where the question is an argument
   // ON
   socket.on('ask', function (question) {
     currentQuestion = question;
-    results = {
-      a: 0
-      , b: 0
-      , c: 0
-      , d: 0
-      , e: 0
-    };
+    results = {a: 0, b: 0, c: 0, d: 0, e: 0};
+    reset();
     // broadcast the current question to *all* sockets
     io.sockets.emit('ask', currentQuestion);
-    console.log("Question Asked: '%s'", question.q);
+    //console.log("Question Asked: '%s'", question.q);
   });
   // ON
   socket.on('answer', function (payload) {
     results[payload.choice]++;
     io.sockets.emit('results', results);
-    console.log("Answer: '%s' - %j", payload.choice, results);
+    //console.log("Answer: '%s' - %j", payload.choice, results);
+    updateResults(payload.choice);
   });
   // disconnect event handler
   // "this" socket can only disconnect *once*
@@ -164,14 +250,14 @@ io.sockets.on('connection', function (socket) {
     if (member) {
       audience.splice(audience.indexOf(member), 1);
       io.sockets.emit('audience', audience);
-      console.log("Left: %s (%s audience members)", member.name, audience.length)
+      //console.log("Left: %s (%s audience members)", member.name, audience.length)
     }
     // if the socket ID emitting the "disconnect" event is NOT found in the "audience" array, then it must be the speaker's socket
     // if the speaker's socket is emitting the "disconnect" event, then clear the speaker object (name, ID) and reset presentation title
     // *broadcast* the "end" event to all sockets with resetted presentation title and speaker name
     // MEMBER SOCKETS WILL BE LISTENING FOR THE "END" EVENT?
     else if (this.id === speaker.id) {
-      console.log("%s has left. '%s' is over.", speaker.name, title);
+      //console.log("%s has left. '%s' is over.", speaker.name, title);
       speaker = {};
       title = "WebSocket Demo";
       io.sockets.emit('end', {
@@ -184,7 +270,7 @@ io.sockets.on('connection', function (socket) {
     // in case the client has disconnected from socket, but the server hasn't...
     socket.disconnect();
     // confirm socket has disconnected
-    console.log("Disconnected: %s sockets remaining.", connections.length);
+    //console.log("Disconnected: %s sockets remaining.", connections.length);
   });
 });
 // NOTE: nothing gets rendered here because this is the server
